@@ -20,6 +20,26 @@ plateIndexLabel = {
     'Los Santos Pounders'
 }
 
+-- สี Chameleon (DLC 3095)
+chameleonPaintLabel = {
+    'ไม่ใช้ Chameleon',
+    'Monochrome',
+    'Night & Day',
+    'The Verlierer',
+    'Sprunk Extreme',
+    'Vice City',
+    'Sunset',
+    'Temperature',
+    'Synthwave Nights',
+    'Four Seasons',
+    'Maisonette 9 Throwback',
+    'Bubblegum',
+    'Full Rainbow',
+    'Kamen Rider',
+    'It\'s Christmas',
+    'Temperature II'
+}
+
 -- ฟิล์มกระจก
 windowTintLabel = {
     'ไม่มี',

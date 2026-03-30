@@ -448,6 +448,13 @@ function SetVehicleModData(vehicle, modType, data)
 		SetVehicleModColor_1(vehicle, data)
 	elseif (modType == 'paintType2') then
 		SetVehicleModColor_2(vehicle, data)
+	elseif (modType == 'chameleonColor1') then
+		local paintType, _, pearlescentColor = GetVehicleModColor_1(vehicle)
+		if tonumber(data) and tonumber(data) >= 0 then
+			SetVehicleModColor_1(vehicle, 5, tonumber(data), pearlescentColor)
+		else
+			SetVehicleModColor_1(vehicle, paintType or 0, 0, pearlescentColor)
+		end
 	elseif (modType == 'pearlescentColor') then
 		local pearlescentColor, wheelColor = GetVehicleExtraColours(vehicle)
 		SetVehicleExtraColours(vehicle, tonumber(data), wheelColor)
@@ -532,6 +539,12 @@ function GetVehicleCurrentMod(vehicle, modType, data)
 		return GetVehicleModColor_1(vehicle)
 	elseif (modType == 'paintType2') then
 		return GetVehicleModColor_2(vehicle)
+	elseif (modType == 'chameleonColor1') then
+		local paintType, color = GetVehicleModColor_1(vehicle)
+		if paintType == 5 then
+			return color
+		end
+		return -1
 	elseif (modType == 'windowTint') then
 		return GetVehicleWindowTint(vehicle)
 	elseif (modType == 'livery') then
@@ -589,6 +602,9 @@ function GetNumVehicleModData(vehicle, modType)
 		return 0
 	elseif (modType == 'paintType1' or modType == 'paintType2') then
 		return 5
+	elseif (modType == 'chameleonColor1') then
+		local labels = chameleonPaintLabel or {}
+		return math.max(#labels - 2, 0)
 	elseif (modType == 'windowTint') then
 		return GetNumVehicleWindowTints(vehicle) - 1
 	elseif (modType == 'modXenon') then
@@ -641,6 +657,9 @@ function GetVehicleModIndexLabel(vehicle, modType, data)
 	elseif (modType == 'paintType1' or modType == 'paintType2') then
 		local label = paintTypeLabel[data + 1] or nil
 		return getUiValueLabel('paintTypeLabel', label)
+	elseif (modType == 'chameleonColor1') then
+		local label = chameleonPaintLabel[data + 2] or nil
+		return getUiValueLabel('chameleonPaintLabel', label)
 	elseif (modType == 'windowTint') then
 		local label = windowTintLabel[data + 1] or nil
 		return getUiValueLabel('windowTintLabel', label)
