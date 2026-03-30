@@ -18,9 +18,9 @@ files {
 	'ui/font/**/*.ttf',
 	'ui/img/**/*.png',
 	'ui/sounds/**/*.ogg',
-	"data/carcols_gen9.meta",
-	"data/carmodcols_gen9.meta",
-	"data/carmodcols.ymt",
+	"stream/carcols_gen9.meta",
+	"stream/carmodcols_gen9.meta",
+	"stream/carmodcols.ymt",
 	"stream/vehicle_paint_ramps.ytd"
 }
 
