@@ -451,7 +451,7 @@ function SetVehicleModData(vehicle, modType, data)
 	elseif (modType == 'chameleonColor1') then
 		local paintType, _, pearlescentColor = GetVehicleModColor_1(vehicle)
 		if tonumber(data) and tonumber(data) >= 0 then
-			SetVehicleModColor_1(vehicle, 5, tonumber(data), pearlescentColor)
+			SetVehicleModColor_1(vehicle, 6, tonumber(data), pearlescentColor)
 		else
 			SetVehicleModColor_1(vehicle, paintType or 0, 0, pearlescentColor)
 		end
@@ -541,7 +541,7 @@ function GetVehicleCurrentMod(vehicle, modType, data)
 		return GetVehicleModColor_2(vehicle)
 	elseif (modType == 'chameleonColor1') then
 		local paintType, color = GetVehicleModColor_1(vehicle)
-		if paintType == 5 then
+		if paintType == 6 then
 			return color
 		end
 		return -1
