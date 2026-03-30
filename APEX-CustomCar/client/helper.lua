@@ -1,16 +1,20 @@
 -- MENU
-local chameleonColorMap = {
-	{ col = 161, spec = 161 },
-	{ col = 164, spec = 164 },
-	{ col = 170, spec = 160 },
-	{ col = 171, spec = 92 },
-	{ col = 183, spec = 92 },
-	{ col = 191, spec = 89 },
-	{ col = 199, spec = 203 },
-	{ col = 209, spec = 208 },
-	{ col = 216, spec = 216 },
-	{ col = 218, spec = 218 },
-}
+local function getChameleonPaintIds()
+	local gameBuild = GetGameBuildNumber()
+	local ids = {}
+
+	if gameBuild == 2545 then
+		for i = 161, 166, 1 do
+			ids[#ids + 1] = i
+		end
+	elseif gameBuild >= 2699 then
+		for i = 177, 241, 1 do
+			ids[#ids + 1] = i
+		end
+	end
+
+	return ids
+end
 
 function clearMenu(menu)
 	local tempMenu = deepcopy(menu)
@@ -462,15 +466,14 @@ function SetVehicleModData(vehicle, modType, data)
 	elseif (modType == 'paintType2') then
 		SetVehicleModColor_2(vehicle, data)
 	elseif (modType == 'chameleonColor1') then
-		local paintType, _, pearlescentColor = GetVehicleModColor_1(vehicle)
+		local chameleonIds = getChameleonPaintIds()
 		if tonumber(data) and tonumber(data) >= 0 then
-			local chameleonData = chameleonColorMap[(tonumber(data) or 0) + 1]
-			if chameleonData then
+			local paintId = chameleonIds[(tonumber(data) or 0) + 1]
+			if paintId then
 				ClearVehicleCustomPrimaryColour(vehicle)
-				SetVehicleModColor_1(vehicle, 6, chameleonData.col, chameleonData.spec)
+				ClearVehicleCustomSecondaryColour(vehicle)
+				SetVehicleColours(vehicle, paintId, paintId)
 			end
-		else
-			SetVehicleModColor_1(vehicle, paintType or 0, 0, pearlescentColor)
 		end
 	elseif (modType == 'pearlescentColor') then
 		local pearlescentColor, wheelColor = GetVehicleExtraColours(vehicle)
@@ -557,12 +560,11 @@ function GetVehicleCurrentMod(vehicle, modType, data)
 	elseif (modType == 'paintType2') then
 		return GetVehicleModColor_2(vehicle)
 	elseif (modType == 'chameleonColor1') then
-		local paintType, color = GetVehicleModColor_1(vehicle)
-		if paintType == 6 then
-			for i = 1, #chameleonColorMap, 1 do
-				if chameleonColorMap[i].col == color then
-					return i - 1
-				end
+		local color1 = select(1, GetVehicleColours(vehicle))
+		local chameleonIds = getChameleonPaintIds()
+		for i = 1, #chameleonIds, 1 do
+			if chameleonIds[i] == color1 then
+				return i - 1
 			end
 		end
 		return -1
@@ -624,7 +626,8 @@ function GetNumVehicleModData(vehicle, modType)
 	elseif (modType == 'paintType1' or modType == 'paintType2') then
 		return 5
 	elseif (modType == 'chameleonColor1') then
-		return math.max(#chameleonColorMap - 1, 0)
+		local chameleonIds = getChameleonPaintIds()
+		return math.max(#chameleonIds - 1, 0)
 	elseif (modType == 'windowTint') then
 		return GetNumVehicleWindowTints(vehicle) - 1
 	elseif (modType == 'modXenon') then
@@ -678,7 +681,7 @@ function GetVehicleModIndexLabel(vehicle, modType, data)
 		local label = paintTypeLabel[data + 1] or nil
 		return getUiValueLabel('paintTypeLabel', label)
 	elseif (modType == 'chameleonColor1') then
-		local label = chameleonPaintLabel[data + 2] or nil
+		local label = chameleonPaintLabel[data + 2] or ('Paint #' .. tostring(data + 1))
 		return getUiValueLabel('chameleonPaintLabel', label)
 	elseif (modType == 'windowTint') then
 		local label = windowTintLabel[data + 1] or nil
