@@ -1,4 +1,17 @@
 -- MENU
+local chameleonColorMap = {
+	{ col = 161, spec = 161 },
+	{ col = 164, spec = 164 },
+	{ col = 170, spec = 160 },
+	{ col = 171, spec = 92 },
+	{ col = 183, spec = 92 },
+	{ col = 191, spec = 89 },
+	{ col = 199, spec = 203 },
+	{ col = 209, spec = 208 },
+	{ col = 216, spec = 216 },
+	{ col = 218, spec = 218 },
+}
+
 function clearMenu(menu)
 	local tempMenu = deepcopy(menu)
 
@@ -451,7 +464,11 @@ function SetVehicleModData(vehicle, modType, data)
 	elseif (modType == 'chameleonColor1') then
 		local paintType, _, pearlescentColor = GetVehicleModColor_1(vehicle)
 		if tonumber(data) and tonumber(data) >= 0 then
-			SetVehicleModColor_1(vehicle, 6, tonumber(data), pearlescentColor)
+			local chameleonData = chameleonColorMap[(tonumber(data) or 0) + 1]
+			if chameleonData then
+				ClearVehicleCustomPrimaryColour(vehicle)
+				SetVehicleModColor_1(vehicle, 6, chameleonData.col, chameleonData.spec)
+			end
 		else
 			SetVehicleModColor_1(vehicle, paintType or 0, 0, pearlescentColor)
 		end
@@ -542,7 +559,11 @@ function GetVehicleCurrentMod(vehicle, modType, data)
 	elseif (modType == 'chameleonColor1') then
 		local paintType, color = GetVehicleModColor_1(vehicle)
 		if paintType == 6 then
-			return color
+			for i = 1, #chameleonColorMap, 1 do
+				if chameleonColorMap[i].col == color then
+					return i - 1
+				end
+			end
 		end
 		return -1
 	elseif (modType == 'windowTint') then
@@ -603,8 +624,7 @@ function GetNumVehicleModData(vehicle, modType)
 	elseif (modType == 'paintType1' or modType == 'paintType2') then
 		return 5
 	elseif (modType == 'chameleonColor1') then
-		local labels = chameleonPaintLabel or {}
-		return math.max(#labels - 2, 0)
+		return math.max(#chameleonColorMap - 1, 0)
 	elseif (modType == 'windowTint') then
 		return GetNumVehicleWindowTints(vehicle) - 1
 	elseif (modType == 'modXenon') then
