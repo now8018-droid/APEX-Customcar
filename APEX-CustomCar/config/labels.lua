@@ -8,9 +8,16 @@ plateIndexLabel = {
     'ขาวน้ำเงิน',
     'เหลืองดำ',
     'เหลืองน้ำเงิน',
-    'ขาวน้ำเงิน',
-    'ขาวน้ำเงิน',
-    'North Yankton'
+    'ขาวน้ำเงิน 2',
+    'ขาวน้ำเงิน 3',
+    'North Yankton',
+    'eCola',
+    'Sprunk',
+    'San Andreas',
+    'San Andreas (ตีตรา)',
+    'Liberty City',
+    'Las Venturas',
+    'Los Santos Pounders'
 }
 
 -- ฟิล์มกระจก

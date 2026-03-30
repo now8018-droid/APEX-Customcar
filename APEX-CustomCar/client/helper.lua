@@ -566,6 +566,10 @@ function GetNumVehicleModData(vehicle, modType)
 	SetVehicleModKit(vehicle, 0)
 
 	if (modType == 'plateIndex') then
+		local plateCount = GetNumberOfVehicleNumberPlates()
+		if plateCount and plateCount > 0 then
+			return plateCount - 1
+		end
 		return 5
 	elseif (modType == 'color1') then
 		return 0
@@ -632,7 +636,7 @@ function GetVehicleModIndexLabel(vehicle, modType, data)
 	end
 
 	if (modType == 'plateIndex') then
-		local label = plateIndexLabel[data + 1] or nil
+		local label = plateIndexLabel[data + 1] or ('Plate ' .. tostring(data + 1))
 		return getUiValueLabel('plateIndexLabel', label)
 	elseif (modType == 'paintType1' or modType == 'paintType2') then
 		local label = paintTypeLabel[data + 1] or nil

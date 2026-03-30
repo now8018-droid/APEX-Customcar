@@ -5,23 +5,15 @@ let currentCash = null;
 let displayedCash = null;
 let cashAnimationFrame = null;
 
-let canDetailCardToggle = true;
-let userDetailCardToggle = true;
-
 let menuLastPos = [];
 let menuLastPosIndex = '';
-
-let cardFadeOutTimeOut = null;
 
 let menuLoading = false;
 let lastMenuScrollFrame = null;
 
 let currentVehicleCard = {
     vehicleName: '',
-    power: 0.0,
-    acceleration: 0.0,
-    maxSpeed: 0.0,
-    breaks: 0.0
+    class: ''
 };
 
 let grid = null;
@@ -223,10 +215,8 @@ function listener() {
             isOpenByAdmin = tempData.isOpenByAdmin
 
             $('.display_mech').fadeIn();
+            $('body').addClass('mouse-enabled');
             
-            fadeInDetailCard();
-            userDetailCardToggle = false;
-
             if (tempData.what === 'menu') {
                 createMenu(tempData.menuId, tempData.options, tempData.menuTitle, tempData.defaultOption, tempData.whitelistJobName);
             } else if (tempData.what === 'colorPicker') {
@@ -296,18 +286,6 @@ document.onkeydown = function(event) {
         if ($('.mech_color_palette').is(":hidden") == false) {
             setColorPickerMouse(false);
         }
-    } else if (event.which == 71) { // g
-        event.preventDefault();
-
-        userDetailCardToggle = !userDetailCardToggle;
-        fadeInDetailCard();
-        fadeOutDetailCard();
-    } else if (event.which == 72) { // h
-        event.preventDefault();
-
-        if ($('.mech_color_palette').is(":hidden") == false) {
-            toggleColorPickerMouse();
-        }
     } else if (event.which == 82) { // r
         event.preventDefault();
 
@@ -336,14 +314,7 @@ document.onkeydown = function(event) {
         }
     } else if (event.which == 8) { // backspace
         event.preventDefault();
-
-        $.post(`https://${getNuiResourceName()}/handle`, JSON.stringify({
-            type: 'update',
-            what: 'menu',
-            user: 'backspace',
-            menuId: menuLastPosIndex,
-            menuIndex: menuLastPos[menuLastPosIndex]
-        }));
+        postMenuAction('backspace');
 
         menuLastPos[menuLastPosIndex] = null;
 
@@ -352,17 +323,7 @@ document.onkeydown = function(event) {
         }
     } else if (event.which == 13) { // enter
         event.preventDefault();
-
-        $.post(`https://${getNuiResourceName()}/handle`, JSON.stringify({
-            type: 'update',
-            what: 'menu',
-            user: 'enter',
-            menuId: menuLastPosIndex,
-            menuIndex: menuLastPos[menuLastPosIndex],
-            color: getCurrentColorPayload(),
-            isCustom: isCustom,
-            priceMult: colorPriceMult,
-        }));
+        confirmCurrentSelection();
     } else if (event.which == 27) { // esc
         event.preventDefault();
 
@@ -378,15 +339,10 @@ document.onkeydown = function(event) {
 
 function resetUI() {
     $('.display_mech').fadeOut();
-
-    canDetailCardToggle = true;
-    userDetailCardToggle = true;
+    $('body').removeClass('mouse-enabled');
 
     menuLastPos = [];
     menuLastPosIndex = '';
-
-    cardFadeOutTimeOut = null;
-    clearTimeout(cardFadeOutTimeOut);
     
     menuLoading = false;
 
@@ -402,9 +358,6 @@ function resetUI() {
     }
 
     $('#scroll-container').html('');
-
-    $('#detailCard').hide();
-    $('#detailCard').css({opacity: 0, right: '-140px'})
     fadeOutColorPicker()
 
     isCustom = null;
@@ -479,11 +432,29 @@ function createMenu(menuId, data, title, defaultOption, whitelistJobName) {
         defaultOption = defaultOption ? defaultOption : 0;
         menuLastPos[menuLastPosIndex] = menuLastPos[menuLastPosIndex] != null ? menuLastPos[menuLastPosIndex] : defaultOption;
         $('.mech_main_area').show();
-        menuGoto(0);
+        menuGotoIndex(menuLastPos[menuLastPosIndex], false, true);
+        bindMenuMouseEvents();
 
         setTimeout(() => {
             menuLoading = false;
         }, 120);
+}
+
+function postMenuAction(user) {
+    $.post(`https://${getNuiResourceName()}/handle`, JSON.stringify({
+        type: 'update',
+        what: 'menu',
+        user: user,
+        menuId: menuLastPosIndex,
+        menuIndex: menuLastPos[menuLastPosIndex],
+        color: getCurrentColorPayload(),
+        isCustom: isCustom,
+        priceMult: colorPriceMult,
+    }));
+}
+
+function confirmCurrentSelection() {
+    postMenuAction('enter');
 }
 
 function menuGoto(valueHor,News) {
@@ -493,16 +464,27 @@ function menuGoto(valueHor,News) {
         $('.mech_title').html('');
         return;
     }
-    $('#scroll-container > div').eq(menuLastPos[menuLastPosIndex]).removeClass('hovers');
-    
-    menuLastPos[menuLastPosIndex] = menuLastPos[menuLastPosIndex] + valueHor;
-    if (menuLastPos[menuLastPosIndex] > (total - 1)) {
-        menuLastPos[menuLastPosIndex] = 0
+    let nextIndex = menuLastPos[menuLastPosIndex] + valueHor;
+    if (nextIndex > (total - 1)) {
+        nextIndex = 0
     }
-    if (menuLastPos[menuLastPosIndex] < 0) {
-        menuLastPos[menuLastPosIndex] = total - 1
+    if (nextIndex < 0) {
+        nextIndex = total - 1
     }
-    
+    menuGotoIndex(nextIndex, News);
+}
+
+function menuGotoIndex(index, smooth = true, shouldPostHover = true) {
+    const total = $('#scroll-container > div').length;
+    if (total < 1) return;
+
+    const previousIndex = menuLastPos[menuLastPosIndex];
+    if (previousIndex != null && previousIndex >= 0 && previousIndex < total) {
+        $('#scroll-container > div').eq(previousIndex).removeClass('hovers');
+    }
+
+    menuLastPos[menuLastPosIndex] = index;
+
     $('#scroll-container > div').eq(menuLastPos[menuLastPosIndex]).addClass('hovers');
     $('.mech_page_number p').html((menuLastPos[menuLastPosIndex] + 1) + '/' + total);
     if (lastMenuScrollFrame !== null) {
@@ -517,21 +499,54 @@ function menuGoto(valueHor,News) {
             const targetLeft = activeItem.offsetLeft;
             container.scrollTo({
                 left: targetLeft,
-                behavior: News ? 'smooth' : 'auto'
+                behavior: smooth ? 'smooth' : 'auto'
             });
         }
 
         lastMenuScrollFrame = null;
     });
-   
 
-    $.post(`https://${getNuiResourceName()}/handle`, JSON.stringify({
-        type: 'update',
-        what: 'menu',
-        user: 'hover',
-        menuId: menuLastPosIndex,
-        menuIndex: menuLastPos[menuLastPosIndex]
-    }));
+    if (shouldPostHover) {
+        $.post(`https://${getNuiResourceName()}/handle`, JSON.stringify({
+            type: 'update',
+            what: 'menu',
+            user: 'hover',
+            menuId: menuLastPosIndex,
+            menuIndex: menuLastPos[menuLastPosIndex]
+        }));
+    }
+}
+
+function bindMenuMouseEvents() {
+    const menuContainer = $('#scroll-container');
+    menuContainer.off('.menuMouse');
+
+    menuContainer.on('click.menuMouse', '.mech_ul', function() {
+        const index = $(this).index();
+        if (index !== menuLastPos[menuLastPosIndex]) {
+            menuGotoIndex(index, true, true);
+            return;
+        }
+        confirmCurrentSelection();
+    });
+
+    menuContainer.on('dblclick.menuMouse', '.mech_ul', function() {
+        const index = $(this).index();
+        menuGotoIndex(index, true, true);
+        confirmCurrentSelection();
+    });
+
+    menuContainer.on('wheel.menuMouse', function(event) {
+        event.preventDefault();
+        const deltaY = event.originalEvent.deltaY;
+        menuGoto(deltaY > 0 ? 1 : -1, true);
+    });
+
+    menuContainer.on('contextmenu.menuMouse', function(event) {
+        event.preventDefault();
+        postMenuAction('backspace');
+        menuLastPos[menuLastPosIndex] = null;
+    });
 }
 
 function menuColorPickerGoto(hor, vert) {
@@ -618,61 +633,10 @@ function getCurrentColorPayload() {
 
 function updateDetailCardData(data) {
     currentVehicleCard.vehicleName = data.vehicleName ? data.vehicleName : currentVehicleCard.vehicleName
-    currentVehicleCard.power = data.power ? data.power : currentVehicleCard.power;
-    currentVehicleCard.acceleration = data.acceleration ? data.acceleration : currentVehicleCard.acceleration;
-    currentVehicleCard.maxSpeed = data.maxSpeed ? data.maxSpeed : currentVehicleCard.maxSpeed;
-    currentVehicleCard.breaks = data.breaks ? data.breaks : currentVehicleCard.breaks;
+    currentVehicleCard.class = data.class ? data.class : currentVehicleCard.class;
 
     $('#detailCard_name').html(currentVehicleCard.vehicleName);
-
-    $('.acc_1').css('background-size', (currentVehicleCard.acceleration * 10).toFixed(0) + '%')
-    $('.spd_1').css('background-size', (currentVehicleCard.maxSpeed * 10).toFixed(0) + '%')
-    $('.brk_1').css('background-size', (currentVehicleCard.breaks * 10).toFixed(0) + '%')
-    $('.sus_1').css('background-size', (currentVehicleCard.power * 10).toFixed(0) + '%')
-    if (data.class) {
-        $('#class_name').html(data.class)
-    }
-}
-
-function fadeInDetailCard() {
-    if (!userDetailCardToggle || !canDetailCardToggle || !$('#detailCard').is(':hidden')) {
-        return;
-    }
-    
-    canDetailCardToggle = false;
-  
-    $('.acc_1').css('background-size', (currentVehicleCard.acceleration * 10).toFixed(0) + '%')
-    $('.spd_1').css('background-size', (currentVehicleCard.maxSpeed * 10).toFixed(0) + '%')
-    $('.brk_1').css('background-size', (currentVehicleCard.breaks * 10).toFixed(0) + '%')
-    $('.sus_1').css('background-size', (currentVehicleCard.power * 10).toFixed(0) + '%')
-    setTimeout(() => {
-        canDetailCardToggle = true;
-    }, 3000);
-    $('#detailCard').stop(true, true).animate({
-        opacity: 1,
-        left: '5%'
-    }, 1000)
-
-    $('#detailCard').show();
-}
-
-function fadeOutDetailCard() {
-    if (userDetailCardToggle || !canDetailCardToggle || !$('#detailCard').is(':visible')) {
-        return;
-    }
-
-    canDetailCardToggle = false;
-
-    $('#detailCard').stop(true, true).animate({
-        opacity: 0,
-        left: '-10%'
-    }, 1000, function() {
-        $('#detailCard').hide();
-
-        setTimeout(function(){
-            canDetailCardToggle = true;
-        }, 1000);
-    })
+    $('#class_name').html(currentVehicleCard.class);
 }
 
 function fadeInColorPicker(title, price, defaultValue, whitelistJobName) {
@@ -726,7 +690,7 @@ function initColorPicker(title, price, defaultValue, whitelistJobName) {
 
     $('#colorPicker-container').html('');
 
-    setColorPickerMouse(false);
+    setColorPickerMouse(true);
     colorPickerMode = 'wheel';
 
     if (colorPickerMode === 'wheel') {
@@ -759,8 +723,8 @@ function initColorPicker(title, price, defaultValue, whitelistJobName) {
                         <p>R</p>
                     </div>
                     <div class='color-wheel-shortcut'>
-                        <p>เปิด / ปิดเมาส์เลือกสี</p>
-                        <p>H</p>
+                        <p>คลิกค้างเพื่อเลือกสี</p>
+                        <p>MOUSE</p>
                     </div>
                     <div class='color-wheel-shortcut'>
                         <p>ยืนยันสีที่เลือก</p>
@@ -850,11 +814,6 @@ function initColorPicker(title, price, defaultValue, whitelistJobName) {
     }
 }
 
-
-function toggleColorPickerMouse() {
-    setColorPickerMouse(!isColorPickerMouseEnabled);
-}
-
 function setColorPickerMouse(enable) {
     isColorPickerMouseEnabled = enable;
 
@@ -902,6 +861,15 @@ function bindColorWheelEvents() {
             document.onmousemove = null;
             document.onmouseup = null;
         };
+    };
+
+    wheelElement.ondblclick = () => {
+        confirmCurrentSelection();
+    };
+
+    wheelElement.oncontextmenu = (event) => {
+        event.preventDefault();
+        postMenuAction('backspace');
     };
 
     valueSlider.oninput = (event) => {
