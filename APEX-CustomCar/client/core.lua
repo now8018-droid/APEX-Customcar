@@ -559,9 +559,9 @@ function openUI()
         DisplayHud(false)
         radarWasVisible = not IsRadarHidden()
         DisplayRadar(false)
-        nuiMouseEnabled = false
+        nuiMouseEnabled = true
         uiOpen = true
-        setCustomizationNuiFocus(true, false, true)
+        setCustomizationNuiFocus(true, true, true)
 
         pcall(function()
             exports[Config.ExportResources.carHUD]:ToggleDisplay(false)

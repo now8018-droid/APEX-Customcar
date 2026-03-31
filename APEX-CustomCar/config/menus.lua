@@ -182,6 +182,7 @@ Config.Menus = {
                     openColorPicker('Pearlescent Color', 'pearlescentColor', false, Config.VehicleCustomisePriceMultiplier['pearlescent'])
                 end
             },
+            { label = 'Chameleon Paint',      img = 'respray', modType = 'chameleonColor1', priceMult = Config.VehicleCustomisePriceMultiplier['pearlescent'] },
         },
         onBack = function() updateMenu('visual') end
     },

@@ -1,4 +1,21 @@
 -- MENU
+local function getChameleonPaintIds()
+	local gameBuild = GetGameBuildNumber()
+	local ids = {}
+
+	if gameBuild == 2545 then
+		for i = 161, 167, 1 do
+			ids[#ids + 1] = i
+		end
+	elseif gameBuild == 2699 or gameBuild == 2802 or gameBuild >= 3095 then
+		for i = 177, 242, 1 do
+			ids[#ids + 1] = i
+		end
+	end
+
+	return ids
+end
+
 function clearMenu(menu)
 	local tempMenu = deepcopy(menu)
 
@@ -448,6 +465,14 @@ function SetVehicleModData(vehicle, modType, data)
 		SetVehicleModColor_1(vehicle, data)
 	elseif (modType == 'paintType2') then
 		SetVehicleModColor_2(vehicle, data)
+	elseif (modType == 'chameleonColor1') then
+		local chameleonIds = getChameleonPaintIds()
+		if tonumber(data) and tonumber(data) >= 0 then
+			local paintId = chameleonIds[(tonumber(data) or 0) + 1]
+			if paintId then
+				SetVehicleColours(vehicle, paintId, paintId)
+			end
+		end
 	elseif (modType == 'pearlescentColor') then
 		local pearlescentColor, wheelColor = GetVehicleExtraColours(vehicle)
 		SetVehicleExtraColours(vehicle, tonumber(data), wheelColor)
@@ -532,6 +557,15 @@ function GetVehicleCurrentMod(vehicle, modType, data)
 		return GetVehicleModColor_1(vehicle)
 	elseif (modType == 'paintType2') then
 		return GetVehicleModColor_2(vehicle)
+	elseif (modType == 'chameleonColor1') then
+		local color1 = select(1, GetVehicleColours(vehicle))
+		local chameleonIds = getChameleonPaintIds()
+		for i = 1, #chameleonIds, 1 do
+			if chameleonIds[i] == color1 then
+				return i - 1
+			end
+		end
+		return -1
 	elseif (modType == 'windowTint') then
 		return GetVehicleWindowTint(vehicle)
 	elseif (modType == 'livery') then
@@ -566,6 +600,10 @@ function GetNumVehicleModData(vehicle, modType)
 	SetVehicleModKit(vehicle, 0)
 
 	if (modType == 'plateIndex') then
+		local plateCount = GetNumberOfVehicleNumberPlates()
+		if plateCount and plateCount > 0 then
+			return plateCount - 1
+		end
 		return 5
 	elseif (modType == 'color1') then
 		return 0
@@ -585,6 +623,9 @@ function GetNumVehicleModData(vehicle, modType)
 		return 0
 	elseif (modType == 'paintType1' or modType == 'paintType2') then
 		return 5
+	elseif (modType == 'chameleonColor1') then
+		local chameleonIds = getChameleonPaintIds()
+		return math.max(#chameleonIds - 1, 0)
 	elseif (modType == 'windowTint') then
 		return GetNumVehicleWindowTints(vehicle) - 1
 	elseif (modType == 'modXenon') then
@@ -632,11 +673,14 @@ function GetVehicleModIndexLabel(vehicle, modType, data)
 	end
 
 	if (modType == 'plateIndex') then
-		local label = plateIndexLabel[data + 1] or nil
+		local label = plateIndexLabel[data + 1] or ('Plate ' .. tostring(data + 1))
 		return getUiValueLabel('plateIndexLabel', label)
 	elseif (modType == 'paintType1' or modType == 'paintType2') then
 		local label = paintTypeLabel[data + 1] or nil
 		return getUiValueLabel('paintTypeLabel', label)
+	elseif (modType == 'chameleonColor1') then
+		local label = chameleonPaintLabel[data + 2] or ('Paint #' .. tostring(data + 1))
+		return getUiValueLabel('chameleonPaintLabel', label)
 	elseif (modType == 'windowTint') then
 		local label = windowTintLabel[data + 1] or nil
 		return getUiValueLabel('windowTintLabel', label)

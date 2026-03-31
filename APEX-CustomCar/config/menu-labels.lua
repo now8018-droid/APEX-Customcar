@@ -84,6 +84,7 @@ Config.UILabels.OptionLabels = {
     ['Primary Paint Type'] = 'ประเภทสีหลัก',
     ['Secondary Paint Type'] = 'ประเภทสีรอง',
     ['Pearlescent'] = 'สีมุก',
+    ['Chameleon Paint'] = 'สีรุ้ง Chameleon',
     ['Wheels Type'] = 'ประเภทรถล้อ',
     ['Wheels Color'] = 'สีล้อ',
     ['Smoke Color'] = 'สีควันยาง',
