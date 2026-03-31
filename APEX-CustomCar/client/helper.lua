@@ -4,16 +4,13 @@ local function getChameleonPaintIds()
 	local ids = {}
 
 	if gameBuild == 2545 then
-		for i = 161, 166, 1 do
+		for i = 161, 167, 1 do
 			ids[#ids + 1] = i
 		end
-	elseif gameBuild >= 2699 then
-		ids = {
-			223, 236, 240, 226, 239,
-			224, 233, 227, 228, 225,
-			238, 229, 234, 230, 231,
-			232, 235, 237, 241, 242
-		}
+	elseif gameBuild == 2699 or gameBuild == 2802 or gameBuild >= 3095 then
+		for i = 177, 242, 1 do
+			ids[#ids + 1] = i
+		end
 	end
 
 	return ids
@@ -473,8 +470,6 @@ function SetVehicleModData(vehicle, modType, data)
 		if tonumber(data) and tonumber(data) >= 0 then
 			local paintId = chameleonIds[(tonumber(data) or 0) + 1]
 			if paintId then
-				ClearVehicleCustomPrimaryColour(vehicle)
-				ClearVehicleCustomSecondaryColour(vehicle)
 				SetVehicleColours(vehicle, paintId, paintId)
 			end
 		end
