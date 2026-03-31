@@ -8,9 +8,12 @@ local function getChameleonPaintIds()
 			ids[#ids + 1] = i
 		end
 	elseif gameBuild >= 2699 then
-		for i = 177, 241, 1 do
-			ids[#ids + 1] = i
-		end
+		ids = {
+			223, 236, 240, 226, 239,
+			224, 233, 227, 228, 225,
+			238, 229, 234, 230, 231,
+			232, 235, 237, 241, 242
+		}
 	end
 
 	return ids
